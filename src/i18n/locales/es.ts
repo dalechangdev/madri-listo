@@ -1,0 +1,55 @@
+export const es = {
+  tabs: { map: 'Mapa', nearby: 'Cerca', about: 'Info' },
+  categories: {
+    defibrillator: 'Desfibriladores',
+    bus: 'Autobuses',
+    metro: 'Metro',
+    picnic: 'Mesas de picnic',
+    fountain: 'Fuentes',
+  },
+  datasets: { dea: 'Desfibriladores (DEA)' },
+  map: {
+    title: 'Recursos en Madrid',
+    locate: 'Mi ubicación',
+    resultsInView: '{{count}} en pantalla',
+    zoomToExpand: 'Acerca el mapa para ver cada punto',
+  },
+  nearby: {
+    title: 'Cerca de ti',
+    empty: 'No hay recursos cerca todavía.',
+    needsLocation: 'Activa la ubicación para ver los recursos más cercanos.',
+    enableLocation: 'Permitir ubicación',
+    distanceMeters: '{{value}} m',
+    distanceKilometers: '{{value}} km',
+  },
+  detail: {
+    schedule: 'Horario de acceso',
+    placement: 'Ubicación exacta',
+    type: 'Tipo de establecimiento',
+    directions: 'Cómo llegar',
+    close: 'Cerrar',
+    source: 'Fuente',
+  },
+  sync: {
+    downloading: 'Descargando datos abiertos…',
+    parsing: 'Procesando registros…',
+    storing: 'Guardando en el dispositivo…',
+    upToDate: 'Datos actualizados',
+    failed: 'No se pudieron actualizar los datos',
+    retry: 'Reintentar',
+    offlineNotice: 'Sin conexión: mostrando datos guardados.',
+    lastUpdated: 'Actualizado el {{date}}',
+    refresh: 'Actualizar datos',
+    recordCount: '{{count}} registros guardados',
+  },
+  about: {
+    title: 'Acerca de',
+    intro:
+      'MadridDex reúne datos abiertos del Ayuntamiento y la Comunidad de Madrid para ayudarte a encontrar recursos públicos cerca de ti.',
+    sources: 'Fuentes de datos',
+    license: 'Licencia',
+    disclaimer:
+      'En una emergencia llama al 112. La disponibilidad de un desfibrilador no está garantizada.',
+  },
+  common: { loading: 'Cargando…', error: 'Algo ha fallado', dismiss: 'Cerrar' },
+} as const;

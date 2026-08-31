@@ -1,56 +1,139 @@
-# Welcome to your Expo app 👋
+# MadridDex
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A cross-platform (iOS + Android) app that surfaces public resources across
+Madrid — defibrillators today, with buses, metro stations, picnic tables and
+fountains sketched into the same pipeline — from the city's and region's open
+data portals.
 
-## Get started
+## Current state
 
-1. Install dependencies
+The **defibrillator (DEA) vertical slice is wired end to end**: the app
+downloads the live register, normalises it, caches it in on-device SQLite, and
+renders it as a filterable, clustered map with a detail sheet and a
+distance-sorted "near you" list. Everything works offline after the first sync.
 
-   ```bash
-   npm install
-   ```
+The map opens at walking scale (~1.7 km across) and recentres on your position
+once located, rather than framing the whole city.
 
-2. Start the app
+The other four categories are declared in `src/constants/categories.ts` but
+marked `available: false` — they need a dataset descriptor before they appear.
 
-   ```bash
-   npx expo start
-   ```
+## Running it
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+`react-native-maps` and `expo-sqlite` contain native code, so this needs a
+**development build** — it will not run in Expo Go.
 
 ```bash
-npm run reset-project
+npm install
+npx expo run:ios       # or: npx expo run:android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+For Android you must supply a Google Maps key in `app.json` at
+`expo.android.config.googleMaps.apiKey` — Android has no non-Google map
+provider. iOS uses Apple Maps via `PROVIDER_DEFAULT` and needs no key.
 
-### Other setup steps
+```bash
+npm run typecheck      # tsc --noEmit
+npm run lint
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Architecture
 
-## Learn more
+```
+src/
+  app/                     expo-router routes (file = screen)
+    _layout.tsx            theme + i18n bootstrap, native tab bar
+    index.tsx              map (primary screen)
+    nearby.tsx             distance-sorted list
+    about.tsx              attribution + manual refresh
+  data/
+    types.ts               ResourceRecord, DatasetDescriptor contracts
+    datasets/              one file per Madrid feed
+      defibrillators.ts    DEA register: fetch shape -> ResourceRecord
+    db.ts                  SQLite schema, migrations, transactional writes
+    repository.ts          viewport, clustering and nearest-neighbour queries
+    sync.ts                download -> normalise -> store orchestration
+    sync-store.ts          app-wide sync state (useSyncExternalStore)
+  hooks/                   use-sync, use-location, use-map-markers
+  components/map/          filter bar, markers, detail sheet
+  i18n/                    es (default) + en
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### The data layer
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Every feed is described by a `DatasetDescriptor` — a `downloadUrl`, an
+`extract` that unwraps the response envelope, and a pure `normalize` that maps
+one source row to a `ResourceRecord`. The sync engine, storage and UI know
+nothing about individual datasets, so **adding a feed means adding one file**
+and registering it in `src/data/datasets/index.ts`.
 
-## Join the community
+Normalisation is deliberately pure and side-effect free so it can be run
+against a captured fixture without a simulator.
 
-Join our community of developers creating universal apps.
+Some sharp edges in the real data that the DEA descriptor already handles:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Coordinates use Spanish decimal commas (`"-3,677"`), which `Number()` rejects.
+- `codigo_dea` is *almost* unique — the live feed currently has one collision,
+  so repeated keys are suffixed rather than silently dropped.
+- Much of the register is typed in caps lock, folded down to sentence case.
+- The floor/door columns often repeat the free-text placement, and are only
+  appended when they add something.
+- The register is *regional*, so it includes municipalities outside the city
+  boundary. These are kept: a defibrillator two streets past the city line is
+  still the nearest one to someone standing there.
+
+### Why SQLite rather than in-memory state
+
+The DEA feed alone is ~10 MB and 12,296 rows. Caching it in SQLite gives
+offline use, indexed viewport queries, and — importantly — lets clustering
+happen *in SQL*:
+
+- Above ~10 km of viewport width (`MAX_MARKER_LON_DELTA`), nothing is drawn and
+  the map prompts you to zoom in. At that scale the grid blankets the city,
+  hiding your own position behind thousands of points you can't act on.
+- Under 250 points in view (`MAX_INDIVIDUAL_MARKERS`), individual pins.
+- Between the two, points are aggregated into a per-category grid whose cell
+  size tracks the zoom level (`CLUSTER_COLUMNS`, currently 6 — about 80 bubbles
+  on a phone).
+
+Note that because the grid is sized *relative to the viewport*, it refills at
+every zoom level: bubble count stays roughly constant as you zoom, rather than
+thinning out. `CLUSTER_COLUMNS` is therefore the single knob that decides how
+busy the map looks. Switching to distance-based clustering (supercluster) would
+make bubbles reflect real density instead, at the cost of loading points into
+memory rather than aggregating them in SQL.
+
+Latitude/longitude are stored offset into positive space (`+90` / `+180`)
+because SQLite's `CAST(... AS INTEGER)` truncates toward zero instead of
+flooring, which would make cell boundaries inconsistent across the meridian.
+
+Refreshes replace a dataset inside a single transaction, and a response that
+yields zero usable records is rejected — a reshaped or empty upstream response
+can never wipe a good cache.
+
+Sync state lives in a module-level store (`src/data/sync-store.ts`) read through
+`useSyncExternalStore`, not in per-screen state. Both the map and the About tab
+observe it, concurrent callers share one in-flight run, and the startup sync is
+triggered once from the root layout — so switching tabs never re-downloads
+anything.
+
+## Data sources
+
+| Dataset | Publisher | Licence |
+| --- | --- | --- |
+| Desfibriladores externos fuera del ámbito sanitario | Comunidad de Madrid | CC BY 4.0 |
+
+Attribution is also shown in-app on the About tab and in each detail sheet.
+
+> In an emergency call **112**. Availability of any listed defibrillator is not
+> guaranteed.
+
+## Adding a dataset
+
+1. Create `src/data/datasets/<name>.ts` exporting a `DatasetDescriptor`.
+2. Register it in `src/data/datasets/index.ts`.
+3. Flip the category to `available: true` in `src/constants/categories.ts`,
+   adding a new one if needed.
+4. Add `categories.<id>` and `datasets.<id>` strings to both locale files.
+
+No changes to the map, list, sync engine or storage layer are required.

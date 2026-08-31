@@ -1,0 +1,55 @@
+export const en = {
+  tabs: { map: 'Map', nearby: 'Nearby', about: 'About' },
+  categories: {
+    defibrillator: 'Defibrillators',
+    bus: 'Buses',
+    metro: 'Metro',
+    picnic: 'Picnic tables',
+    fountain: 'Fountains',
+  },
+  datasets: { dea: 'Defibrillators (AED)' },
+  map: {
+    title: 'Madrid resources',
+    locate: 'My location',
+    resultsInView: '{{count}} in view',
+    zoomToExpand: 'Zoom in to see individual points',
+  },
+  nearby: {
+    title: 'Near you',
+    empty: 'No resources nearby yet.',
+    needsLocation: 'Turn on location to see the closest resources.',
+    enableLocation: 'Allow location',
+    distanceMeters: '{{value}} m',
+    distanceKilometers: '{{value}} km',
+  },
+  detail: {
+    schedule: 'Access hours',
+    placement: 'Exact location',
+    type: 'Type of premises',
+    directions: 'Directions',
+    close: 'Close',
+    source: 'Source',
+  },
+  sync: {
+    downloading: 'Downloading open data…',
+    parsing: 'Processing records…',
+    storing: 'Saving to your device…',
+    upToDate: 'Data up to date',
+    failed: 'Could not update the data',
+    retry: 'Retry',
+    offlineNotice: 'Offline: showing saved data.',
+    lastUpdated: 'Updated {{date}}',
+    refresh: 'Refresh data',
+    recordCount: '{{count}} records stored',
+  },
+  about: {
+    title: 'About',
+    intro:
+      'MadridDex brings together open data from the Madrid city council and region to help you find public resources near you.',
+    sources: 'Data sources',
+    license: 'License',
+    disclaimer:
+      'In an emergency call 112. The availability of a defibrillator is not guaranteed.',
+  },
+  common: { loading: 'Loading…', error: 'Something went wrong', dismiss: 'Dismiss' },
+} as const;
