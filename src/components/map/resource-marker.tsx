@@ -3,7 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 
 import { CATEGORIES } from '@/constants/categories';
+import { resourceTitle } from '@/data/display';
 import type { MapMarker } from '@/data/types';
+import { useTranslation } from '@/hooks/use-translation';
+import type { Translator } from '@/i18n';
 
 type Props = {
   marker: MapMarker;
@@ -20,6 +23,7 @@ function bubbleSize(count: number): number {
 
 function ResourceMarkerComponent({ marker, onPress }: Props) {
   const meta = CATEGORIES[marker.category];
+  const { t, formatNumber } = useTranslation();
 
   // Custom marker views render blank on Android if view tracking is disabled
   // before the first layout pass. Track for one frame, then switch it off so
@@ -38,7 +42,14 @@ function ResourceMarkerComponent({ marker, onPress }: Props) {
       coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
       onPress={() => onPress(marker)}
       tracksViewChanges={tracksViewChanges}
-      accessibilityLabel={isCluster ? `${marker.count}` : marker.name}
+      accessibilityLabel={
+        isCluster
+          ? t('map.clusterLabel', {
+              category: t(meta.labelKey),
+              count: marker.count,
+            })
+          : resourceTitle(marker, t)
+      }
       // Centre the custom view on the actual coordinate.
       anchor={{ x: 0.5, y: 0.5 }}>
       <View
@@ -54,16 +65,19 @@ function ResourceMarkerComponent({ marker, onPress }: Props) {
         <Text
           style={[styles.label, { fontSize: isCluster ? 13 : 14 }]}
           numberOfLines={1}>
-          {isCluster ? formatCount(marker.count) : meta.glyph}
+          {isCluster ? formatCount(marker.count, formatNumber) : meta.glyph}
         </Text>
       </View>
     </Marker>
   );
 }
 
-/** 1240 -> "1.2k", keeping bubbles narrow. */
-function formatCount(count: number): string {
-  return count >= 1000 ? `${(count / 1000).toFixed(1)}k` : String(count);
+/** 1240 -> "1.2k" ("1,2k" in Spanish), keeping bubbles narrow. */
+function formatCount(
+  count: number,
+  formatNumber: Translator['formatNumber'],
+): string {
+  return count >= 1000 ? `${formatNumber(count / 1000, 1)}k` : String(count);
 }
 
 const styles = StyleSheet.create({

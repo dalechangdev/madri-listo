@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORIES } from '@/constants/categories';
 import { Spacing } from '@/constants/theme';
 import { getDataset } from '@/data/datasets';
+import { resourceTitle } from '@/data/display';
 import type { ResourceRecord } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/hooks/use-translation';
@@ -25,9 +26,9 @@ type Props = {
 };
 
 /** Opens the platform's native maps app with a driving/walking destination. */
-function openDirections(resource: ResourceRecord) {
-  const { latitude, longitude, name } = resource;
-  const label = encodeURIComponent(name);
+function openDirections(resource: ResourceRecord, title: string) {
+  const { latitude, longitude } = resource;
+  const label = encodeURIComponent(title);
   const url = Platform.select({
     ios: `maps://app?daddr=${latitude},${longitude}&q=${label}`,
     android: `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`,
@@ -85,6 +86,7 @@ export function ResourceDetailSheet({
 
   const meta = CATEGORIES[shown.category];
   const dataset = getDataset(shown.datasetId);
+  const title = resourceTitle(shown, t);
 
   // Feeds where every row is the same kind of thing carry no per-record type,
   // so fall back to the dataset's own label — which has the advantage of being
@@ -118,7 +120,7 @@ export function ResourceDetailSheet({
           <Text style={styles.badgeGlyph}>{meta.glyph}</Text>
         </View>
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.text }]}>{shown.name}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           {(shown.address || distanceMeters != null) && (
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {[
@@ -172,7 +174,7 @@ export function ResourceDetailSheet({
       </ScrollView>
 
       <Pressable
-        onPress={() => openDirections(shown)}
+        onPress={() => openDirections(shown, title)}
         accessibilityRole="button"
         style={[styles.action, { backgroundColor: meta.color }]}>
         <Text style={styles.actionLabel}>{t('detail.directions')}</Text>

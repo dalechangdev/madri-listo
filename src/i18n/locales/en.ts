@@ -31,6 +31,8 @@ export const en = {
     title: 'Madrid resources',
     locate: 'My location',
     resultsInView: '{{count}} in view',
+    /** Screen-reader label for a cluster bubble, e.g. "Libraries: 12". */
+    clusterLabel: '{{category}}: {{count}}',
     zoomToExpand: 'Zoom in to see individual points',
   },
   nearby: {
@@ -62,7 +64,10 @@ export const en = {
     offlineNotice: 'Offline: showing saved data.',
     lastUpdated: 'Updated {{date}}',
     refresh: 'Refresh data',
-    recordCount: '{{count}} records stored',
+    recordCount: {
+      one: '{{count}} record stored',
+      other: '{{count}} records stored',
+    },
   },
   about: {
     title: 'About',

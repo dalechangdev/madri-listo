@@ -31,6 +31,8 @@ export const es = {
     title: 'Recursos en Madrid',
     locate: 'Mi ubicación',
     resultsInView: '{{count}} en pantalla',
+    /** Etiqueta de lector de pantalla para un grupo, p. ej. "Bibliotecas: 12". */
+    clusterLabel: '{{category}}: {{count}}',
     zoomToExpand: 'Acerca el mapa para ver cada punto',
   },
   nearby: {
@@ -62,7 +64,10 @@ export const es = {
     offlineNotice: 'Sin conexión: mostrando datos guardados.',
     lastUpdated: 'Actualizado el {{date}}',
     refresh: 'Actualizar datos',
-    recordCount: '{{count}} registros guardados',
+    recordCount: {
+      one: '{{count}} registro guardado',
+      other: '{{count}} registros guardados',
+    },
   },
   about: {
     title: 'Acerca de',

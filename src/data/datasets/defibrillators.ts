@@ -115,7 +115,7 @@ export const defibrillatorsDataset: DatasetDescriptor<DeaRow> = {
       id: `dea:${key}`,
       datasetId: 'dea',
       category: 'defibrillator',
-      name: streetLine ?? clean(row.tipo_establecimiento) ?? 'DEA',
+      name: streetLine ?? clean(row.tipo_establecimiento),
       latitude,
       longitude,
       address: locality || null,

@@ -2,7 +2,7 @@
 
 Goal: serve Spanish and English speakers equally well.
 
-Status: Phases 1 and 2 done (2026-09-17). Language-selection approach decided.
+Status: Phases 1–3 done (2026-09-17). Language-selection approach decided.
 
 ## What already works
 
@@ -129,7 +129,7 @@ offers an override.
   language), including an unknown saved value and an unsupported device
   language such as French, which should resolve to Spanish.
 
-### Phase 3: correct wording
+### Phase 3: correct wording — done
 
 - Change count strings to plural forms, e.g.
   `recordCount: { one: '{{count}} registro guardado', other: '{{count}} registros guardados' }`.
@@ -139,6 +139,27 @@ offers an override.
   separators.
 - Replace the hard-coded `'DEA'` fallback name in `defibrillators.ts` with a
   key, since English readers say AED.
+- Outcome:
+  - `sync.recordCount` has `one`/`other` forms. `map.resultsInView` stayed a
+    single string: "12 in view" / "12 en pantalla" has no noun to inflect.
+    The default `i18n-js` pluralizer is correct for Spanish here too.
+  - Every `{{count}}` is shown with the language's digit grouping, via one
+    `i18n.interpolate` override ("12.296" / "12,296"). Plural selection still
+    uses the raw number.
+  - The translator gains `formatNumber`. Distances and cluster bubbles use it
+    ("1,5 km", "1,2k"). Distances round before choosing m vs km, and keep one
+    decimal only below 9,950 m.
+  - Placeholder names are no longer stored. The DEA feed's `'DEA'` and the
+    fountain feed's `'Fuente'` / `DESC_CLASIFICACION` fallbacks became `null`,
+    so `ResourceRecord.name` is nullable. `src/data/display.ts`
+    (`resourceTitle`) shows the dataset's translated type label instead, for
+    the marker, nearby row, detail sheet and directions label. Point markers
+    now carry `datasetId` for this.
+  - Schema v3 rebuilds `resources` with a nullable `name`, keeps the rows, and
+    clears the sync timestamps so old placeholders get replaced. The
+    migration SQL was checked against a v2 sample database.
+  - Cluster bubbles have a spoken label (`map.clusterLabel`, e.g.
+    "Libraries: 1,240") instead of a bare number.
 
 ### Phase 4: catch translation mistakes before runtime
 

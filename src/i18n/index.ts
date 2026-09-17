@@ -1,5 +1,5 @@
 import { getLocales } from 'expo-localization';
-import { I18n } from 'i18n-js';
+import { I18n, type TranslateOptions } from 'i18n-js';
 import { AppState } from 'react-native';
 
 import {
@@ -16,6 +16,45 @@ const i18n = new I18n({ es, en });
 i18n.defaultLocale = DEFAULT_LANGUAGE;
 i18n.enableFallback = true;
 
+// Plural strings are `{ one, other }` objects. The default pluralizer (English
+// CLDR rules, plus an optional `zero`) is also right for Spanish here: 1 takes
+// `one`, everything else — including 0 — takes `other`.
+
+const numberFormats = new Map<string, Intl.NumberFormat>();
+
+/** `Intl.NumberFormat` is costly to build and markers format constantly, so cache. */
+function numberFormat(locale: string, fractionDigits = 0): Intl.NumberFormat {
+  const key = `${locale}:${fractionDigits}`;
+  let format = numberFormats.get(key);
+  if (!format) {
+    format = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    });
+    numberFormats.set(key, format);
+  }
+  return format;
+}
+
+// `{{count}}` is shown with the language's digit grouping ("12.296" in Spanish,
+// "12,296" in English). Plural selection has already used the raw number by
+// the time interpolation runs.
+const baseInterpolate = i18n.interpolate;
+i18n.interpolate = (instance, message, options) => {
+  if (typeof options.count !== 'number') {
+    return baseInterpolate(instance, message, options);
+  }
+  const count = numberFormat(options.locale ?? instance.locale).format(
+    options.count,
+  );
+  // `TranslateOptions` types `count` as a number, but interpolation only ever
+  // stringifies it, so a pre-formatted string is safe here.
+  return baseInterpolate(instance, message, {
+    ...options,
+    count,
+  } as unknown as TranslateOptions);
+};
+
 export type Translator = {
   language: Language;
   /** Translate a key, e.g. `t('map.title')`. */
@@ -23,6 +62,8 @@ export type Translator = {
   /** Formats a distance for display, switching to km past 1000 m. */
   formatDistance: (meters: number) => string;
   formatDate: (timestamp: number) => string;
+  /** Formats a number with the language's separators, e.g. 1.5 -> "1,5" in Spanish. */
+  formatNumber: (value: number, fractionDigits?: number) => string;
 };
 
 function createTranslator(language: Language): Translator {
@@ -31,15 +72,22 @@ function createTranslator(language: Language): Translator {
   const t: Translator['t'] = (key, options) =>
     i18n.t(key, { ...options, locale: language });
 
+  const formatNumber: Translator['formatNumber'] = (value, fractionDigits) =>
+    numberFormat(language, fractionDigits).format(value);
+
   return {
     language,
     t,
+    formatNumber,
     formatDistance: (meters) => {
-      if (meters < 1000) {
-        return t('nearby.distanceMeters', { value: Math.round(meters) });
+      // Round before choosing the unit, so 999.6 m reads "1.0 km", not "1000 m".
+      const rounded = Math.round(meters);
+      if (rounded < 1000) {
+        return t('nearby.distanceMeters', { value: formatNumber(rounded) });
       }
       return t('nearby.distanceKilometers', {
-        value: (meters / 1000).toFixed(meters < 10000 ? 1 : 0),
+        // One decimal below 10 km; 9,950 m and up would already round to "10.0".
+        value: formatNumber(meters / 1000, rounded < 9950 ? 1 : 0),
       });
     },
     formatDate: (timestamp) =>

@@ -38,7 +38,7 @@ type ResourceRow = {
   id: string;
   dataset_id: string;
   category: string;
-  name: string;
+  name: string | null;
   latitude: number;
   longitude: number;
   address: string | null;
@@ -111,6 +111,7 @@ export async function queryMarkers(
     return rows.map((row) => ({
       kind: 'point' as const,
       id: row.id,
+      datasetId: row.dataset_id,
       latitude: row.latitude - LAT_OFFSET,
       longitude: row.longitude - LON_OFFSET,
       category: row.category as CategoryId,
@@ -128,7 +129,8 @@ export async function queryMarkers(
     lat: number;
     lon: number;
     sample_id: string;
-    sample_name: string;
+    sample_dataset_id: string;
+    sample_name: string | null;
   }>(
     `SELECT CAST(latitude / ? AS INTEGER)  AS gx,
             CAST(longitude / ? AS INTEGER) AS gy,
@@ -136,8 +138,11 @@ export async function queryMarkers(
             COUNT(*)     AS total,
             AVG(latitude)  AS lat,
             AVG(longitude) AS lon,
-            MIN(id)      AS sample_id,
-            MIN(name)    AS sample_name
+            -- Only read when the cell holds a single row, so these all
+            -- describe that same row.
+            MIN(id)         AS sample_id,
+            MIN(dataset_id) AS sample_dataset_id,
+            MIN(name)       AS sample_name
        FROM resources
       WHERE ${clause}
       GROUP BY gx, gy, category`,
@@ -152,6 +157,7 @@ export async function queryMarkers(
       return {
         kind: 'point' as const,
         id: cluster.sample_id,
+        datasetId: cluster.sample_dataset_id,
         latitude,
         longitude,
         category: cluster.category as CategoryId,

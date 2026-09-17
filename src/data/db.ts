@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import type { ResourceRecord } from '@/data/types';
 
 const DATABASE_NAME = 'madrilisto.db';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -50,17 +50,44 @@ async function upgradeSchema(
     // themselves survive, and stay usable offline in the meantime.
     await db.execAsync('DELETE FROM dataset_sync;');
   }
+  if (from < 3) {
+    // `name` became nullable. SQLite can't drop NOT NULL in place, so rebuild
+    // the table, keeping the rows. Names cached before this version may be
+    // single-language placeholders; drop the freshness stamps so the next sync
+    // replaces them.
+    await db.withExclusiveTransactionAsync(async (tx) => {
+      await tx.execAsync(`
+        ALTER TABLE resources RENAME TO resources_v2;
+        DROP INDEX IF EXISTS idx_resources_cat_geo;
+      `);
+      await createTables(tx);
+      await tx.execAsync(`
+        INSERT INTO resources
+          (id, dataset_id, category, name, latitude, longitude,
+           address, detail, schedule, postal_code, subtype, url)
+        SELECT id, dataset_id, category, name, latitude, longitude,
+               address, detail, schedule, postal_code, subtype, url
+          FROM resources_v2;
+        DROP TABLE resources_v2;
+        DELETE FROM dataset_sync;
+      `);
+    });
+  }
 }
 
 async function createSchema(db: SQLite.SQLiteDatabase): Promise<void> {
-  await db.execAsync(`
-    PRAGMA journal_mode = WAL;
+  await db.execAsync('PRAGMA journal_mode = WAL;');
+  await createTables(db);
+}
 
+/** Separate from `createSchema` because the journal mode can't change inside a transaction. */
+async function createTables(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS resources (
       id           TEXT PRIMARY KEY NOT NULL,
       dataset_id   TEXT NOT NULL,
       category     TEXT NOT NULL,
-      name         TEXT NOT NULL,
+      name         TEXT,
       latitude     REAL NOT NULL,
       longitude    REAL NOT NULL,
       address      TEXT,

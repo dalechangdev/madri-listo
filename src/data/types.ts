@@ -9,8 +9,12 @@ export type ResourceRecord = {
   id: string;
   datasetId: string;
   category: CategoryId;
-  /** Human-readable headline for the marker callout. */
-  name: string;
+  /**
+   * Human-readable headline taken from the source. Null when the source has
+   * nothing identifying; the UI then shows the dataset's translated type label
+   * rather than a placeholder frozen in one language at sync time.
+   */
+  name: string | null;
   latitude: number;
   longitude: number;
   address: string | null;
@@ -30,7 +34,7 @@ export type ResourceRecord = {
 
 /** A marker to draw: either one resource, or a bubble standing for many. */
 export type MapMarker =
-  | { kind: 'point'; id: string; latitude: number; longitude: number; category: CategoryId; name: string }
+  | { kind: 'point'; id: string; datasetId: string; latitude: number; longitude: number; category: CategoryId; name: string | null }
   | { kind: 'cluster'; id: string; latitude: number; longitude: number; category: CategoryId; count: number };
 
 export type Attribution = {

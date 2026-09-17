@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResourceDetailSheet } from '@/components/map/resource-detail-sheet';
 import { CATEGORIES, AVAILABLE_CATEGORIES } from '@/constants/categories';
 import { BottomTabInset, Spacing } from '@/constants/theme';
+import { resourceTitle } from '@/data/display';
 import { queryNearby, type NearbyResult } from '@/data/repository';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
@@ -112,7 +113,7 @@ export default function NearbyScreen() {
                 <Text
                   numberOfLines={1}
                   style={[styles.rowTitle, { color: colors.text }]}>
-                  {item.name}
+                  {resourceTitle(item, t)}
                 </Text>
                 {(item.detail || item.address) && (
                   <Text

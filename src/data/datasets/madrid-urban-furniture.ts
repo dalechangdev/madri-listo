@@ -168,8 +168,9 @@ export function createUrbanFurnitureDataset(
         datasetId: config.id,
         category: config.category,
         // These feeds carry no per-item name — every row's classification is
-        // identical — so the street line is what actually identifies one.
-        name: buildStreetLine(row) ?? clean(row.DESC_CLASIFICACION) ?? 'Fuente',
+        // the same Spanish label — so the street line is what actually
+        // identifies one. Without it the UI falls back to the translated type.
+        name: buildStreetLine(row),
         latitude: coords.latitude,
         longitude: coords.longitude,
         address: [clean(row.COD_POSTAL), district ? titleCaseSpanish(district) : null]
