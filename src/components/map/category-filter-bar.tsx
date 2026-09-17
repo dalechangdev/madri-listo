@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { CATEGORIES, type CategoryId } from '@/constants/categories';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { useTranslation } from '@/hooks/use-translation';
 
 type Props = {
   available: readonly CategoryId[];
@@ -14,6 +14,7 @@ type Props = {
 /** Horizontal chip row for switching resource categories on and off. */
 export function CategoryFilterBar({ available, selected, onToggle }: Props) {
   const colors = useTheme();
+  const { t } = useTranslation();
 
   return (
     <ScrollView

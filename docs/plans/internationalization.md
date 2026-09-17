@@ -2,7 +2,7 @@
 
 Goal: serve Spanish and English speakers equally well.
 
-Status: Phase 1 done (2026-09-17). Language-selection approach decided.
+Status: Phases 1 and 2 done (2026-09-17). Language-selection approach decided.
 
 ## What already works
 
@@ -62,7 +62,7 @@ Status: Phase 1 done (2026-09-17). Language-selection approach decided.
 
 Reference: https://docs.expo.dev/guides/localization/
 
-### Phase 2: make language changes update the screens
+### Phase 2: make language changes update the screens — done
 
 - Keep the current language in a small store in `src/i18n`, built like
   `src/data/sync-store.ts` (`useSyncExternalStore`), and add a
@@ -75,6 +75,21 @@ Reference: https://docs.expo.dev/guides/localization/
   keys rather than translated text, as it already does.
 - The store resolves the active language as: saved override if set, otherwise
   the device language (see "Language setting" below).
+- Outcome:
+  - `src/i18n/language.ts` holds the pure rule (`resolveLanguage`), with no
+    React Native imports. `src/i18n/index.ts` holds the store and
+    `watchDeviceLanguage()`, which the root layout starts.
+    `src/hooks/use-translation.ts` returns `{ language, t, formatDistance,
+    formatDate }`.
+  - The global `t`, `formatDistance` and `formatDate` exports are gone, so
+    nothing can bypass the hook.
+  - There is one translator object per language, and each passes its locale
+    on every `i18n.t` call. Its identity changes only when the language
+    changes. React Compiler (enabled in `app.json`) relies on this: with a
+    plain imported `t`, it could keep showing text in the old language.
+  - The nearby list passes `extraData={language}` so its rows re-render.
+  - The preference is fixed to `'system'` until the About tab setting adds a
+    setter and storage.
 
 ### Language setting on the About tab
 

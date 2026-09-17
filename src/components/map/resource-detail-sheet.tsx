@@ -16,7 +16,7 @@ import { Spacing } from '@/constants/theme';
 import { getDataset } from '@/data/datasets';
 import type { ResourceRecord } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDistance, t } from '@/i18n';
+import { useTranslation } from '@/hooks/use-translation';
 
 type Props = {
   resource: ResourceRecord | null;
@@ -59,6 +59,7 @@ export function ResourceDetailSheet({
 }: Props) {
   const colors = useTheme();
   const insets = useSafeAreaInsets();
+  const { t, formatDistance } = useTranslation();
   // Created once via lazy initial state; reading a ref during render is not
   // allowed under the React Compiler.
   const [slide] = useState(() => new Animated.Value(0));

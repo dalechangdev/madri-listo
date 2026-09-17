@@ -16,10 +16,11 @@ import { BottomTabInset, Spacing } from '@/constants/theme';
 import { queryNearby, type NearbyResult } from '@/data/repository';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDistance, t } from '@/i18n';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function NearbyScreen() {
   const colors = useTheme();
+  const { language, t, formatDistance } = useTranslation();
   const location = useLocation();
   const [results, setResults] = useState<NearbyResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,9 @@ export default function NearbyScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={results}
+        // Rows only re-render when `data` or `extraData` change, so the
+        // formatted distances would otherwise stay in the old language.
+        extraData={language}
         keyExtractor={(item) => item.id}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.listContent}

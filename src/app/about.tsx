@@ -4,10 +4,11 @@ import { BottomTabInset, Spacing } from '@/constants/theme';
 import { DATASETS } from '@/data/datasets';
 import { useSync } from '@/hooks/use-sync';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDate, t } from '@/i18n';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function AboutScreen() {
   const colors = useTheme();
+  const { t, formatDate } = useTranslation();
   const sync = useSync();
 
   return (

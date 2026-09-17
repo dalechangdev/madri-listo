@@ -6,8 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppTabs from '@/components/app-tabs';
 import { startInitialSync } from '@/data/sync-store';
-// Side-effect import: configures the locale before any screen renders.
-import '@/i18n';
+import { watchDeviceLanguage } from '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +20,9 @@ export default function RootLayout() {
     // reveal the UI as soon as navigation is mounted.
     void SplashScreen.hideAsync();
   }, []);
+
+  // Keeps the UI language in step with the device while the app is running.
+  useEffect(() => watchDeviceLanguage(), []);
 
   return (
     <SafeAreaProvider>

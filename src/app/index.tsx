@@ -14,7 +14,7 @@ import { useLocation } from '@/hooks/use-location';
 import { useMapMarkers } from '@/hooks/use-map-markers';
 import { useSync } from '@/hooks/use-sync';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { useTranslation } from '@/hooks/use-translation';
 
 /**
  * Puerta del Sol at walking scale (~1.7km across) rather than the whole city.
@@ -37,6 +37,7 @@ const CLUSTER_ZOOM_FACTOR = 0.35;
 
 export default function MapScreen() {
   const colors = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
 
