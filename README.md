@@ -1,4 +1,4 @@
-# MadridDex
+# MadriListo
 
 A cross-platform (iOS + Android) app that surfaces public resources across
 Madrid — defibrillators today, with buses, metro stations, picnic tables and

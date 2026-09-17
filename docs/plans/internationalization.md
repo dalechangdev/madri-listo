@@ -2,7 +2,7 @@
 
 Goal: serve Spanish and English speakers equally well.
 
-Status: proposed (2026-09-17). Language-selection approach decided.
+Status: Phase 1 done (2026-09-17). Language-selection approach decided.
 
 ## What already works
 
@@ -37,14 +37,16 @@ Status: proposed (2026-09-17). Language-selection approach decided.
 
 ## Plan
 
-### Phase 1: system text (config only)
+### Phase 1: system text (config only) — done
 
 - Add to `app.json`:
-  `"locales": { "es": "./locales/es.json", "en": "./locales/en.json" }`.
-  Each file sets the location permission text
+  `"locales": { "es": "./assets/native-locales/es.json", "en": "./assets/native-locales/en.json" }`
+  (kept apart from the app's own strings in `src/i18n/locales/`). Each file
+  sets the location permission text under `ios`
   (`NSLocationWhenInUseUsageDescription`,
-  `NSLocationAlwaysAndWhenInUseUsageDescription`) and the app name
-  (`ios.CFBundleDisplayName`, `android.app_name`).
+  `NSLocationAlwaysAndWhenInUseUsageDescription`). The app name is
+  "MadriListo" in both languages, so `expo.name` covers it and no per-language
+  name is needed.
 - Set `ios.infoPlist.CFBundleAllowMixedLocalizations: true`.
 - Configure the `expo-localization` plugin with
   `supportedLocales: { ios: ["es", "en"], android: ["es", "en"] }` and
@@ -52,6 +54,11 @@ Status: proposed (2026-09-17). Language-selection approach decided.
   phone's system settings on both platforms.
 - `ios/` and `android/` are git-ignored, so `app.json` is the source of truth.
   Verify with `npx expo prebuild --clean`.
+- Outcome: verified with a prebuild of a scratch copy. iOS gets
+  `es.lproj`/`en.lproj` `InfoPlist.strings` and `CFBundleLocalizations`;
+  Android gets `locales_config.xml` wired into the manifest. The
+  `expo-location` defaults for "Always" and motion permissions stay in English,
+  but the app only requests foreground location, so they are never shown.
 
 Reference: https://docs.expo.dev/guides/localization/
 
@@ -156,5 +163,10 @@ setting comes after Phase 2, since it depends on the re-rendering store.
 
 ## Decisions
 
+- 2026-09-17: the app is renamed from MadridDex to MadriListo everywhere:
+  display name, slug and URL scheme (`madrilisto`), bundle ID and Android
+  package (`dev.dalechang.madrilisto`), npm package name and database file
+  (`madrilisto.db`). It had not shipped to any store or device, so nothing
+  needed migrating.
 - 2026-09-17: the language follows the device, with an override on the About
   tab (see "Language setting on the About tab").

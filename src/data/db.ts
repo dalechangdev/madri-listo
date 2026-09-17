@@ -2,7 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 import type { ResourceRecord } from '@/data/types';
 
-const DATABASE_NAME = 'madriddex.db';
+const DATABASE_NAME = 'madrilisto.db';
 const SCHEMA_VERSION = 2;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;

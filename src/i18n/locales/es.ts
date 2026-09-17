@@ -67,7 +67,7 @@ export const es = {
   about: {
     title: 'Acerca de',
     intro:
-      'MadridDex reúne datos abiertos del Ayuntamiento y la Comunidad de Madrid para ayudarte a encontrar recursos públicos cerca de ti.',
+      'MadriListo reúne datos abiertos del Ayuntamiento y la Comunidad de Madrid para ayudarte a encontrar recursos públicos cerca de ti.',
     sources: 'Fuentes de datos',
     license: 'Licencia',
     disclaimer:

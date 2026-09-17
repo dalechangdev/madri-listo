@@ -67,7 +67,7 @@ export const en = {
   about: {
     title: 'About',
     intro:
-      'MadridDex brings together open data from the Madrid city council and region to help you find public resources near you.',
+      'MadriListo brings together open data from the Madrid city council and region to help you find public resources near you.',
     sources: 'Data sources',
     license: 'License',
     disclaimer:

@@ -1,23 +1,24 @@
 {
   "expo": {
-    "name": "MadridDex",
-    "slug": "madriddex",
+    "name": "MadriListo",
+    "slug": "madrilisto",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "madriddex",
+    "scheme": "madrilisto",
     "userInterfaceStyle": "automatic",
     "platforms": ["ios", "android"],
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "dev.dalechang.madriddex",
+      "bundleIdentifier": "dev.dalechang.madrilisto",
       "supportsTablet": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
-      "package": "dev.dalechang.madriddex",
+      "package": "dev.dalechang.madrilisto",
       "adaptiveIcon": {
         "backgroundColor": "#E5484D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -31,15 +32,28 @@
         }
       }
     },
+    "locales": {
+      "es": "./assets/native-locales/es.json",
+      "en": "./assets/native-locales/en.json"
+    },
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-localization",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["es", "en"],
+            "android": ["es", "en"]
+          },
+          "supportsRTL": false
+        }
+      ],
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "MadridDex usa tu ubicación para mostrarte los recursos públicos más cercanos.",
-          "locationWhenInUsePermission": "MadridDex usa tu ubicación para mostrarte los recursos públicos más cercanos."
+          "locationAlwaysAndWhenInUsePermission": "MadriListo usa tu ubicación para mostrarte los recursos públicos más cercanos.",
+          "locationWhenInUsePermission": "MadriListo usa tu ubicación para mostrarte los recursos públicos más cercanos."
         }
       ],
       [

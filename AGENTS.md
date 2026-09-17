@@ -2,7 +2,7 @@
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
-# MadridDex
+# MadriListo
 
 Datasets are plugins: a `DatasetDescriptor` in `src/data/datasets/` with a pure
 `normalize`. Nothing in the UI, sync engine or storage layer should ever

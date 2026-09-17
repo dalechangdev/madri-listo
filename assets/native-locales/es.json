@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSLocationWhenInUseUsageDescription": "MadriListo usa tu ubicación para mostrarte los recursos públicos más cercanos.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "MadriListo usa tu ubicación para mostrarte los recursos públicos más cercanos."
+  }
+}
