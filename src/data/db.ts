@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import type { ResourceRecord } from '@/data/types';
 
 const DATABASE_NAME = 'madriddex.db';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -26,6 +26,33 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   const current = row?.user_version ?? 0;
   if (current >= SCHEMA_VERSION) return;
 
+  if (current === 0) {
+    await createSchema(db);
+  } else {
+    await upgradeSchema(db, current);
+  }
+
+  await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION};`);
+}
+
+/**
+ * Incremental upgrades from an already-populated cache. Kept additive so a
+ * schema bump never forces users back online to see their saved data.
+ */
+async function upgradeSchema(
+  db: SQLite.SQLiteDatabase,
+  from: number,
+): Promise<void> {
+  if (from < 2) {
+    await db.execAsync('ALTER TABLE resources ADD COLUMN url TEXT;');
+    // Existing rows predate the column and would stay null until the cache
+    // aged out, so drop the freshness stamps to trigger one refresh. The rows
+    // themselves survive, and stay usable offline in the meantime.
+    await db.execAsync('DELETE FROM dataset_sync;');
+  }
+}
+
+async function createSchema(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
 
@@ -40,7 +67,8 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
       detail       TEXT,
       schedule     TEXT,
       postal_code  TEXT,
-      subtype      TEXT
+      subtype      TEXT,
+      url          TEXT
     );
 
     -- Serves the viewport query: filter by category, then range-scan latitude.
@@ -52,8 +80,6 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
       last_synced_at INTEGER,
       record_count   INTEGER NOT NULL DEFAULT 0
     );
-
-    PRAGMA user_version = ${SCHEMA_VERSION};
   `);
 }
 
@@ -85,8 +111,8 @@ export async function replaceDatasetRecords(
     const statement = await tx.prepareAsync(
       `INSERT INTO resources
          (id, dataset_id, category, name, latitude, longitude,
-          address, detail, schedule, postal_code, subtype)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          address, detail, schedule, postal_code, subtype, url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     try {
       for (const record of records) {
@@ -102,6 +128,7 @@ export async function replaceDatasetRecords(
           record.schedule,
           record.postalCode,
           record.subtype,
+          record.url,
         ]);
       }
     } finally {

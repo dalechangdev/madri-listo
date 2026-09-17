@@ -1,3 +1,5 @@
+import { isWithinMadrid } from '@/constants/geo';
+import { clean, softenCaps, titleCaseWord } from '@/data/text';
 import type { DatasetDescriptor, ResourceRecord } from '@/data/types';
 
 /**
@@ -39,35 +41,6 @@ export function parseSpanishFloat(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Trims, collapses runs of whitespace, and maps empty strings to null. */
-function clean(value: string | undefined): string | null {
-  const trimmed = value?.replace(/\s+/g, ' ').trim();
-  return trimmed ? trimmed : null;
-}
-
-/** "CALLE" -> "Calle". Leaves the proper-noun part of the street name alone. */
-function titleCaseWord(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}
-
-/**
- * Much of the register is typed in caps lock ("PLANTA BAJA - RECEPCIÓN").
- * Shouting at the user is worse than losing the original casing, so fold
- * all-caps values down to sentence case. Mixed-case values are left alone.
- */
-function softenCaps(value: string): string {
-  const hasLowercase = value !== value.toUpperCase();
-  if (hasLowercase) return value;
-  const lowered = value.toLowerCase();
-  return lowered.charAt(0).toUpperCase() + lowered.slice(1);
-}
-
-/**
- * Bounding box of the Comunidad de Madrid, with a small margin. Guards against
- * rows where lat/lon have been swapped or zeroed at the source.
- */
-const REGION_BOUNDS = { minLat: 39.8, maxLat: 41.3, minLon: -4.7, maxLon: -3.0 };
-
 function buildStreetLine(row: DeaRow): string | null {
   const viaType = clean(row.direccion_via_codigo);
   const viaName = clean(row.direccion_via_nombre);
@@ -102,6 +75,7 @@ export const defibrillatorsDataset: DatasetDescriptor<DeaRow> = {
   id: 'dea',
   category: 'defibrillator',
   labelKey: 'datasets.dea',
+  typeLabelKey: 'types.dea',
   downloadUrl: DOWNLOAD_URL,
   attribution: {
     publisher: 'Comunidad de Madrid',
@@ -123,14 +97,7 @@ export const defibrillatorsDataset: DatasetDescriptor<DeaRow> = {
     const latitude = parseSpanishFloat(row.direccion_latitud);
     const longitude = parseSpanishFloat(row.direccion_longitud);
     if (latitude === null || longitude === null) return null;
-    if (
-      latitude < REGION_BOUNDS.minLat ||
-      latitude > REGION_BOUNDS.maxLat ||
-      longitude < REGION_BOUNDS.minLon ||
-      longitude > REGION_BOUNDS.maxLon
-    ) {
-      return null;
-    }
+    if (!isWithinMadrid(latitude, longitude)) return null;
 
     // `codigo_dea` is *almost* unique — the live feed currently has one
     // collision — so suffix repeats instead of silently dropping a device.
@@ -156,6 +123,7 @@ export const defibrillatorsDataset: DatasetDescriptor<DeaRow> = {
       schedule: clean(row.horario_acceso),
       postalCode,
       subtype: clean(row.tipo_establecimiento),
+      url: null,
     };
     return record;
   },

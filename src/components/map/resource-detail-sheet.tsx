@@ -85,6 +85,12 @@ export function ResourceDetailSheet({
   const meta = CATEGORIES[shown.category];
   const dataset = getDataset(shown.datasetId);
 
+  // Feeds where every row is the same kind of thing carry no per-record type,
+  // so fall back to the dataset's own label — which has the advantage of being
+  // translated, unlike the source data.
+  const typeLabel =
+    shown.subtype ?? (dataset?.typeLabelKey ? t(dataset.typeLabelKey) : null);
+
   return (
     <Animated.View
       pointerEvents={resource ? 'auto' : 'none'}
@@ -135,19 +141,32 @@ export function ResourceDetailSheet({
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
         {shown.detail && (
-          <DetailRow label={t('detail.placement')} value={shown.detail} />
+          <DetailRow
+            // What the free-text field means varies by feed: a placement note
+            // for defibrillators, a service list for municipal facilities.
+            label={t(dataset?.detailLabelKey ?? 'detail.placement')}
+            value={shown.detail}
+          />
         )}
         {shown.schedule && (
           <DetailRow label={t('detail.schedule')} value={shown.schedule} />
         )}
-        {shown.subtype && (
-          <DetailRow label={t('detail.type')} value={shown.subtype} />
-        )}
+        {typeLabel && <DetailRow label={t('detail.type')} value={typeLabel} />}
         {dataset && (
           <DetailRow
             label={t('detail.source')}
             value={`${dataset.attribution.publisher} · ${dataset.attribution.license}`}
           />
+        )}
+        {shown.url && (
+          <Pressable
+            onPress={() => void Linking.openURL(shown.url!)}
+            accessibilityRole="link"
+            style={styles.link}>
+            <Text style={[styles.linkLabel, { color: meta.color }]}>
+              {t('detail.moreInfo')} ↗
+            </Text>
+          </Pressable>
         )}
       </ScrollView>
 
@@ -204,6 +223,8 @@ const styles = StyleSheet.create({
   row: { gap: Spacing.half },
   rowLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   rowValue: { fontSize: 15, lineHeight: 21 },
+  link: { paddingVertical: Spacing.one },
+  linkLabel: { fontSize: 15, fontWeight: '600' },
   action: {
     borderRadius: Spacing.three,
     paddingVertical: Spacing.three,

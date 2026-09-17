@@ -46,6 +46,7 @@ type ResourceRow = {
   schedule: string | null;
   postal_code: string | null;
   subtype: string | null;
+  url: string | null;
 };
 
 function toRecord(row: ResourceRow): ResourceRecord {
@@ -61,6 +62,7 @@ function toRecord(row: ResourceRow): ResourceRecord {
     schedule: row.schedule,
     postalCode: row.postal_code,
     subtype: row.subtype,
+    url: row.url,
   };
 }
 

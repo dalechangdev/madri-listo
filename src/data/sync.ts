@@ -34,9 +34,22 @@ async function syncDataset(
 ): Promise<number> {
   try {
     onProgress?.({ datasetId: dataset.id, phase: 'downloading' });
-    const response = await fetch(dataset.downloadUrl);
+
+    // Some publishers rotate the filename on every republish. Resolution is
+    // best-effort: if the catalogue API is unreachable or rate-limiting us,
+    // the last known URL is still worth trying.
+    let url = dataset.downloadUrl;
+    if (dataset.resolveDownloadUrl) {
+      try {
+        url = await dataset.resolveDownloadUrl();
+      } catch {
+        url = dataset.downloadUrl;
+      }
+    }
+
+    const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} from ${dataset.downloadUrl}`);
+      throw new Error(`HTTP ${response.status} from ${url}`);
     }
 
     onProgress?.({ datasetId: dataset.id, phase: 'parsing' });

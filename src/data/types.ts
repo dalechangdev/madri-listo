@@ -18,8 +18,14 @@ export type ResourceRecord = {
   detail: string | null;
   schedule: string | null;
   postalCode: string | null;
-  /** Dataset-specific classification, shown as a chip in the detail sheet. */
+  /**
+   * Per-record classification. Null when every row in the dataset is the same
+   * kind of thing — the detail sheet then falls back to the dataset's own type
+   * label, which has the advantage of being translated.
+   */
   subtype: string | null;
+  /** Canonical page for this facility, when the source publishes one. */
+  url: string | null;
 };
 
 /** A marker to draw: either one resource, or a bubble standing for many. */
@@ -44,9 +50,22 @@ export type Attribution = {
 export type DatasetDescriptor<TRow = unknown> = {
   id: string;
   category: CategoryId;
-  /** Key into the i18n `datasets` namespace. */
+  /** Key into the i18n `datasets` namespace (plural, e.g. "Libraries"). */
   labelKey: string;
+  /** Key for the singular type shown in the detail sheet ("Library"). */
+  typeLabelKey?: string;
+  /**
+   * What this dataset's free-text `detail` field actually means. Defaults to
+   * a placement description; facility feeds use it for services instead.
+   */
+  detailLabelKey?: string;
+  /** Last-known-good download URL; also the fallback if resolution fails. */
   downloadUrl: string;
+  /**
+   * Resolves the current download URL at sync time. Present only for datasets
+   * whose publisher rotates the filename. Failures fall back to `downloadUrl`.
+   */
+  resolveDownloadUrl?: () => Promise<string>;
   attribution: Attribution;
   /** Pulls the row array out of whatever envelope the endpoint returns. */
   extract: (payload: unknown) => TRow[];

@@ -7,16 +7,18 @@ data portals.
 
 ## Current state
 
-The **defibrillator (DEA) vertical slice is wired end to end**: the app
-downloads the live register, normalises it, caches it in on-device SQLite, and
-renders it as a filterable, clustered map with a detail sheet and a
-distance-sorted "near you" list. Everything works offline after the first sync.
+**Six categories are live**: defibrillators, drinking fountains, libraries,
+basic sports facilities, municipal markets and senior centres. The app downloads each feed,
+normalises it, caches it in on-device SQLite, and renders it as a filterable,
+clustered map with a detail sheet and a distance-sorted "near you" list.
+Everything works offline after the first sync.
 
 The map opens at walking scale (~1.7 km across) and recentres on your position
 once located, rather than framing the whole city.
 
-The other four categories are declared in `src/constants/categories.ts` but
-marked `available: false` — they need a dataset descriptor before they appear.
+Buses, metro and picnic tables are declared in
+`src/constants/categories.ts` but marked `available: false` — they need a
+dataset descriptor before they appear.
 
 ## Running it
 
@@ -50,10 +52,16 @@ src/
     types.ts               ResourceRecord, DatasetDescriptor contracts
     datasets/              one file per Madrid feed
       defibrillators.ts    DEA register: fetch shape -> ResourceRecord
+      madrid-graph.ts      factory for the shared city JSON-LD schema
+      madrid-urban-furniture.ts  factory for the flat "mobiliario urbano" schema
+      ckan.ts              resolves rotating download URLs from the catalogue
+    text.ts                caps/slug/title-case normalisation helpers
+    utm.ts                 ETRS89 / UTM 30N -> WGS84, for rows missing lat/lon
     db.ts                  SQLite schema, migrations, transactional writes
     repository.ts          viewport, clustering and nearest-neighbour queries
     sync.ts                download -> normalise -> store orchestration
     sync-store.ts          app-wide sync state (useSyncExternalStore)
+  constants/geo.ts         Madrid bounding box + coordinate sanity check
   hooks/                   use-sync, use-location, use-map-markers
   components/map/          filter bar, markers, detail sheet
   i18n/                    es (default) + en
@@ -81,6 +89,46 @@ Some sharp edges in the real data that the DEA descriptor already handles:
 - The register is *regional*, so it includes municipalities outside the city
   boundary. These are kept: a defibrillator two streets past the city line is
   still the nearest one to someone standing there.
+
+And in the city JSON-LD feeds:
+
+- District and neighbourhood arrive as CamelCase URI slugs
+  (`.../Distrito/PuenteDeVallecas`), some truncated to a bare `Distrito`.
+- Street addresses are in caps lock, so they are title-cased with Spanish
+  particle rules ("AVENIDA DE LA ALBUFERA" -> "Avenida de la Albufera").
+- One sports facility has a **positive** longitude (`3.641` rather than
+  `-3.641`), which would plot it in Iraq. The Madrid bounding-box check in
+  `src/constants/geo.ts` rejects it. This is a source error worth reporting
+  upstream; it is dropped rather than silently sign-flipped.
+- `accesibility` is an undocumented numeric code (`"0"`, `"1"`, `"1,5,6"`).
+  It is deliberately **not** surfaced: guessing at accessibility semantics and
+  getting them wrong would mislead exactly the people who depend on them.
+
+And in the drinking-fountain feed:
+
+- 271 rows publish `LATITUD: null` while still carrying ETRS89 UTM 30N
+  easting/northing. `src/data/utm.ts` recovers 270 of them — **13% more
+  coverage**. The inverse projection was validated against the 2,038 rows that
+  publish both representations: maximum disagreement 0.015 m.
+- 43 fountains are `FUERA_DE_SERVICIO` or `CERRADA_TEMPORALMENT` and are
+  dropped. Sending someone across town in 40 °C heat to a fountain that is
+  switched off is worse than not listing it.
+- The "drinking water" feed also contains 15 pet-only bowls (`USO: MASCOTAS`)
+  and 11 rows with no `USO` at all. These are filtered out — a dog bowl is not
+  drinking water for a person.
+- There is **no seasonal signal in the data**. Madrid shuts many fountains over
+  winter and `ESTADO` tracks maintenance, not season, so between roughly
+  November and April the map will show fountains that are dry. This cannot be
+  fixed from this source.
+- Rows carry no name — every row's classification is the literal string
+  "Fuentes de beber" — so the street line identifies them instead.
+- **Its download URL rotates.** The current extract is published under a
+  timestamped filename (`300051_20260831_055308.json`) that changes on every
+  republish, while the stable-looking resource names hold *year-end archives*
+  (2,138 rows for 2023, 2,223 for 2024, 2,309 today). Hardcoding either is
+  wrong, so `src/data/datasets/ckan.ts` resolves the newest JSON resource from
+  the catalogue at sync time. Resolution is best-effort: on failure the sync
+  falls back to the last known URL, since the portal rate-limits aggressively.
 
 ### Why SQLite rather than in-memory state
 
@@ -119,9 +167,18 @@ anything.
 
 ## Data sources
 
-| Dataset | Publisher | Licence |
-| --- | --- | --- |
-| Desfibriladores externos fuera del ámbito sanitario | Comunidad de Madrid | CC BY 4.0 |
+| Dataset | Records | Publisher | Licence |
+| --- | --- | --- | --- |
+| Desfibriladores externos fuera del ámbito sanitario | 12,296 | Comunidad de Madrid | CC BY 4.0 |
+| Bibliotecas de Madrid | 52 | Ayuntamiento de Madrid | CC BY 4.0 |
+| Instalaciones deportivas básicas municipales | 606 | Ayuntamiento de Madrid | CC BY 4.0 |
+| Mercados municipales | 45 | Ayuntamiento de Madrid | CC BY 4.0 |
+| Centros municipales de mayores | 94 | Ayuntamiento de Madrid | CC BY 4.0 |
+| Fuentes de agua para beber | 2,239 | Ayuntamiento de Madrid | CC BY 4.0 |
+
+Note the mixed geographic scope: the AED register is **regional** (all of the
+Comunidad de Madrid), while the four facility catalogues are **city only**.
+Someone in Alcobendas sees defibrillators but no libraries.
 
 Attribution is also shown in-app on the About tab and in each detail sheet.
 
@@ -129,6 +186,13 @@ Attribution is also shown in-app on the About tab and in each detail sheet.
 > guaranteed.
 
 ## Adding a dataset
+
+Most Ayuntamiento facility catalogues (day centres, municipal car parks, health
+centres…) share one JSON-LD schema, so they need no new parsing code at all —
+just another `createGraphDataset({ ... })` entry in
+`src/data/datasets/index.ts` with its URL and category.
+
+For a feed with its own shape:
 
 1. Create `src/data/datasets/<name>.ts` exporting a `DatasetDescriptor`.
 2. Register it in `src/data/datasets/index.ts`.

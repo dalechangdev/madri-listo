@@ -6,6 +6,10 @@
  */
 export const CATEGORY_IDS = [
   'defibrillator',
+  'library',
+  'sports',
+  'market',
+  'seniors',
   'bus',
   'metro',
   'picnic',
@@ -34,6 +38,34 @@ export const CATEGORIES: Record<CategoryId, CategoryMeta> = {
     glyph: '♥',
     available: true,
   },
+  library: {
+    id: 'library',
+    labelKey: 'categories.library',
+    color: '#8E4EC6',
+    glyph: '📚',
+    available: true,
+  },
+  sports: {
+    id: 'sports',
+    labelKey: 'categories.sports',
+    color: '#46A758',
+    glyph: '⚽',
+    available: true,
+  },
+  market: {
+    id: 'market',
+    labelKey: 'categories.market',
+    color: '#F76B15',
+    glyph: '🛒',
+    available: true,
+  },
+  seniors: {
+    id: 'seniors',
+    labelKey: 'categories.seniors',
+    color: '#0D9488',
+    glyph: '🧓',
+    available: true,
+  },
   bus: {
     id: 'bus',
     labelKey: 'categories.bus',
@@ -44,14 +76,14 @@ export const CATEGORIES: Record<CategoryId, CategoryMeta> = {
   metro: {
     id: 'metro',
     labelKey: 'categories.metro',
-    color: '#8E4EC6',
+    color: '#D6409F',
     glyph: 'Ⓜ',
     available: false,
   },
   picnic: {
     id: 'picnic',
     labelKey: 'categories.picnic',
-    color: '#46A758',
+    color: '#A18072',
     glyph: '⛱',
     available: false,
   },
@@ -60,7 +92,7 @@ export const CATEGORIES: Record<CategoryId, CategoryMeta> = {
     labelKey: 'categories.fountain',
     color: '#00A2C7',
     glyph: '💧',
-    available: false,
+    available: true,
   },
 };
 
