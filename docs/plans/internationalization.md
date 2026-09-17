@@ -2,7 +2,7 @@
 
 Goal: serve Spanish and English speakers equally well.
 
-Status: Phases 1–4 done (2026-09-17). Language-selection approach decided.
+Status: Phases 1–5 done (2026-09-17); Phase 5 option (b) deferred. Language-selection approach decided.
 
 ## What already works
 
@@ -192,7 +192,7 @@ offers an override.
     offline. The About tab now shows it, with `sync.retry` on the button,
     when the sync store's new `updateFailed` flag is set.
 
-### Phase 5: feed data (scope decision)
+### Phase 5: feed data (scope decision) — (a) done, (b) deferred
 
 Free text from the feeds (opening hours, services, addresses) stays in
 Spanish; machine-translating opening hours is risky. Options:
@@ -204,6 +204,31 @@ Spanish; machine-translating opening hours is risky. Options:
   kept inside the dataset descriptor so the UI never special-cases a dataset.
 
 Recommendation: (a) now, (b) later.
+
+Outcome of (a):
+
+- `DatasetDescriptor` has a required `sourceLanguage` (all current feeds:
+  `'es'`), so the UI never assumes which language a feed uses.
+- When the source language differs from the app language, the detail sheet
+  shows `detail.sourceLanguageNote` ("Details from the data source are shown
+  as published, in Spanish."), but only when the record has source text
+  (detail, schedule or subtype). The language name comes from the new
+  `languages` namespace.
+- Source text gets `accessibilityLanguage` (detail sheet title and rows,
+  nearby row title and subtitle), so VoiceOver reads Spanish text with a
+  Spanish voice in the English UI. Translated fallbacks (a type label used as
+  a title) don't. The address/distance subtitle is left alone, because it
+  mixes source and translated text.
+
+Candidates for (b), in order of value:
+
+1. **Fountain feature labels** (`madrid-urban-furniture.ts`: "Zona verde",
+   "Vía pública", "Modelo accesible", "Apta para mascotas"). These aren't
+   source text: the app writes them in Spanish from fixed codes. They need
+   translation keys stored instead of text, e.g. a `features` field (and DB
+   column) holding keys.
+2. **DEA `tipo_establecimiento`**: a finite list of venue types, shown as the
+   subtype and sometimes as the name.
 
 ### Phase 6: tests and docs
 

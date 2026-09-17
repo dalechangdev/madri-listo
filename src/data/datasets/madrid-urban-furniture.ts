@@ -124,6 +124,7 @@ export function createUrbanFurnitureDataset(
     labelKey: config.labelKey,
     typeLabelKey: config.typeLabelKey,
     detailLabelKey: 'detail.features',
+    sourceLanguage: 'es',
     downloadUrl: config.downloadUrl,
     resolveDownloadUrl: config.resolveDownloadUrl,
     attribution: {

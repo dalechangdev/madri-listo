@@ -76,6 +76,7 @@ export const defibrillatorsDataset: DatasetDescriptor<DeaRow> = {
   category: 'defibrillator',
   labelKey: 'datasets.dea',
   typeLabelKey: 'types.dea',
+  sourceLanguage: 'es',
   downloadUrl: DOWNLOAD_URL,
   attribution: {
     publisher: 'Comunidad de Madrid',

@@ -1,6 +1,7 @@
 import { CATEGORIES, type CategoryId } from '@/constants/categories';
 import { getDataset } from '@/data/datasets';
 import type { Translator } from '@/i18n';
+import type { Language } from '@/i18n/language';
 
 type Titled = { name: string | null; datasetId: string; category: CategoryId };
 
@@ -13,4 +14,9 @@ export function resourceTitle(resource: Titled, t: Translator['t']): string {
   if (resource.name) return resource.name;
   const typeLabelKey = getDataset(resource.datasetId)?.typeLabelKey;
   return t(typeLabelKey ?? CATEGORIES[resource.category].labelKey);
+}
+
+/** The language a resource's source text is written in, if known. */
+export function sourceLanguageOf(datasetId: string): Language | undefined {
+  return getDataset(datasetId)?.sourceLanguage;
 }

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResourceDetailSheet } from '@/components/map/resource-detail-sheet';
 import { CATEGORIES, AVAILABLE_CATEGORIES } from '@/constants/categories';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { resourceTitle } from '@/data/display';
+import { resourceTitle, sourceLanguageOf } from '@/data/display';
 import { queryNearby, type NearbyResult } from '@/data/repository';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
@@ -101,6 +101,7 @@ export default function NearbyScreen() {
         }
         renderItem={({ item }) => {
           const meta = CATEGORIES[item.category];
+          const sourceLanguage = sourceLanguageOf(item.datasetId);
           return (
             <Pressable
               onPress={() => setSelected(item)}
@@ -112,12 +113,14 @@ export default function NearbyScreen() {
               <View style={styles.rowText}>
                 <Text
                   numberOfLines={1}
+                  accessibilityLanguage={item.name ? sourceLanguage : undefined}
                   style={[styles.rowTitle, { color: colors.text }]}>
                   {resourceTitle(item, t)}
                 </Text>
                 {(item.detail || item.address) && (
                   <Text
                     numberOfLines={1}
+                    accessibilityLanguage={sourceLanguage}
                     style={[styles.rowSubtitle, { color: colors.textSecondary }]}>
                     {item.detail ?? item.address}
                   </Text>

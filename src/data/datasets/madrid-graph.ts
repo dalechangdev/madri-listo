@@ -72,6 +72,7 @@ export function createGraphDataset(
     // The free-text field on these feeds lists what the facility offers,
     // rather than where inside a building it sits.
     detailLabelKey: 'detail.services',
+    sourceLanguage: 'es',
     downloadUrl: config.downloadUrl,
     attribution: {
       publisher: 'Ayuntamiento de Madrid',

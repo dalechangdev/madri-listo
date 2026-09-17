@@ -1,5 +1,7 @@
 /** Reference locale: every other locale must match this shape (see `@/i18n/keys`). */
 export const es = {
+  /** Nombres de idioma para usar dentro de una frase. */
+  languages: { es: 'español', en: 'inglés' },
   tabs: { map: 'Mapa', nearby: 'Cerca', about: 'Info' },
   categories: {
     defibrillator: 'Desfibriladores',
@@ -54,6 +56,8 @@ export const es = {
     directions: 'Cómo llegar',
     close: 'Cerrar',
     source: 'Fuente',
+    sourceLanguageNote:
+      'Los detalles de la fuente de datos se muestran tal como se publican, en {{language}}.',
   },
   sync: {
     downloading: 'Descargando datos abiertos…',

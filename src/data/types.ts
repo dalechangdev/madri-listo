@@ -1,5 +1,6 @@
 import type { CategoryId } from '@/constants/categories';
 import type { TranslationKey } from '@/i18n/keys';
+import type { Language } from '@/i18n/language';
 
 /**
  * A single point of interest, normalised away from whatever shape the
@@ -64,6 +65,12 @@ export type DatasetDescriptor<TRow = unknown> = {
    * a placement description; facility feeds use it for services instead.
    */
   detailLabelKey?: TranslationKey;
+  /**
+   * Language of the free text the source publishes (names, schedules,
+   * services). It is shown as published, so the UI flags it when this differs
+   * from the app language and tells screen readers how to pronounce it.
+   */
+  sourceLanguage: Language;
   /** Last-known-good download URL; also the fallback if resolution fails. */
   downloadUrl: string;
   /**

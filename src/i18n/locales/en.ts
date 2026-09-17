@@ -1,6 +1,8 @@
 import type { Translations } from '@/i18n/keys';
 
 export const en = {
+  /** Language names for use inside a sentence. */
+  languages: { es: 'Spanish', en: 'English' },
   tabs: { map: 'Map', nearby: 'Nearby', about: 'About' },
   categories: {
     defibrillator: 'Defibrillators',
@@ -55,6 +57,8 @@ export const en = {
     directions: 'Directions',
     close: 'Close',
     source: 'Source',
+    sourceLanguageNote:
+      'Details from the data source are shown as published, in {{language}}.',
   },
   sync: {
     downloading: 'Downloading open data…',

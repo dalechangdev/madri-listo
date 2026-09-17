@@ -37,14 +37,27 @@ function openDirections(resource: ResourceRecord, title: string) {
   void Linking.openURL(url);
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({
+  label,
+  value,
+  valueLanguage,
+}: {
+  label: string;
+  value: string;
+  /** Set when the value is source text, so screen readers pronounce it right. */
+  valueLanguage?: string;
+}) {
   const colors = useTheme();
   return (
     <View style={styles.row}>
       <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>
         {label}
       </Text>
-      <Text style={[styles.rowValue, { color: colors.text }]}>{value}</Text>
+      <Text
+        accessibilityLanguage={valueLanguage}
+        style={[styles.rowValue, { color: colors.text }]}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -60,7 +73,7 @@ export function ResourceDetailSheet({
 }: Props) {
   const colors = useTheme();
   const insets = useSafeAreaInsets();
-  const { t, formatDistance } = useTranslation();
+  const { language, t, formatDistance } = useTranslation();
   // Created once via lazy initial state; reading a ref during render is not
   // allowed under the React Compiler.
   const [slide] = useState(() => new Animated.Value(0));
@@ -87,6 +100,12 @@ export function ResourceDetailSheet({
   const meta = CATEGORIES[shown.category];
   const dataset = getDataset(shown.datasetId);
   const title = resourceTitle(shown, t);
+  const sourceLanguage = dataset?.sourceLanguage;
+  // Source text is shown as published; say so when it isn't in the UI language.
+  const showSourceLanguageNote =
+    sourceLanguage != null &&
+    sourceLanguage !== language &&
+    Boolean(shown.detail || shown.schedule || shown.subtype);
 
   // Feeds where every row is the same kind of thing carry no per-record type,
   // so fall back to the dataset's own label — which has the advantage of being
@@ -120,7 +139,13 @@ export function ResourceDetailSheet({
           <Text style={styles.badgeGlyph}>{meta.glyph}</Text>
         </View>
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+          <Text
+            // Only a source-provided name is in the source language; the
+            // fallback title is already translated.
+            accessibilityLanguage={shown.name ? sourceLanguage : undefined}
+            style={[styles.title, { color: colors.text }]}>
+            {title}
+          </Text>
           {(shown.address || distanceMeters != null) && (
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {[
@@ -143,18 +168,36 @@ export function ResourceDetailSheet({
       </View>
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+        {showSourceLanguageNote && (
+          <Text style={[styles.note, { color: colors.textSecondary }]}>
+            {t('detail.sourceLanguageNote', {
+              language: t(`languages.${sourceLanguage}`),
+            })}
+          </Text>
+        )}
         {shown.detail && (
           <DetailRow
             // What the free-text field means varies by feed: a placement note
             // for defibrillators, a service list for municipal facilities.
             label={t(dataset?.detailLabelKey ?? 'detail.placement')}
             value={shown.detail}
+            valueLanguage={sourceLanguage}
           />
         )}
         {shown.schedule && (
-          <DetailRow label={t('detail.schedule')} value={shown.schedule} />
+          <DetailRow
+            label={t('detail.schedule')}
+            value={shown.schedule}
+            valueLanguage={sourceLanguage}
+          />
         )}
-        {typeLabel && <DetailRow label={t('detail.type')} value={typeLabel} />}
+        {typeLabel && (
+          <DetailRow
+            label={t('detail.type')}
+            value={typeLabel}
+            valueLanguage={shown.subtype ? sourceLanguage : undefined}
+          />
+        )}
         {dataset && (
           <DetailRow
             label={t('detail.source')}
@@ -226,6 +269,7 @@ const styles = StyleSheet.create({
   row: { gap: Spacing.half },
   rowLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   rowValue: { fontSize: 15, lineHeight: 21 },
+  note: { fontSize: 13, lineHeight: 18, fontStyle: 'italic' },
   link: { paddingVertical: Spacing.one },
   linkLabel: { fontSize: 15, fontWeight: '600' },
   action: {
