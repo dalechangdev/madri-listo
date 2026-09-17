@@ -1,3 +1,5 @@
+import type { TranslationKey } from '@/i18n/keys';
+
 /**
  * Catalogue of resource categories the app can display.
  *
@@ -21,7 +23,7 @@ export type CategoryId = (typeof CATEGORY_IDS)[number];
 export type CategoryMeta = {
   id: CategoryId;
   /** Key into the i18n `categories` namespace. */
-  labelKey: string;
+  labelKey: TranslationKey;
   /** Marker tint, used for both pins and cluster bubbles. */
   color: string;
   /** Short glyph drawn inside the marker. Keeps us free of an icon font. */

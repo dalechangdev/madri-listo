@@ -8,6 +8,7 @@ import {
   type Language,
   type LanguagePreference,
 } from '@/i18n/language';
+import type { TranslationKey } from '@/i18n/keys';
 import { en } from '@/i18n/locales/en';
 import { es } from '@/i18n/locales/es';
 
@@ -58,7 +59,7 @@ i18n.interpolate = (instance, message, options) => {
 export type Translator = {
   language: Language;
   /** Translate a key, e.g. `t('map.title')`. */
-  t: (key: string, options?: Record<string, unknown>) => string;
+  t: (key: TranslationKey, options?: Record<string, unknown>) => string;
   /** Formats a distance for display, switching to km past 1000 m. */
   formatDistance: (meters: number) => string;
   formatDate: (timestamp: number) => string;

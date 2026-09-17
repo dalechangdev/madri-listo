@@ -55,6 +55,12 @@ export default function AboutScreen() {
         );
       })}
 
+      {!sync.busy && sync.updateFailed && (
+        <Text style={[styles.body, { color: colors.textSecondary }]}>
+          {sync.error ? t('sync.failed') : t('sync.showingSaved')}
+        </Text>
+      )}
+
       <Pressable
         onPress={() => void sync.refresh(true)}
         disabled={sync.busy}
@@ -65,8 +71,10 @@ export default function AboutScreen() {
         ]}>
         <Text style={{ color: colors.background, fontWeight: '700' }}>
           {sync.busy
-            ? t(`sync.${sync.progress?.phase ?? 'downloading'}`)
-            : t('sync.refresh')}
+            ? t(sync.progressLabelKey)
+            : sync.updateFailed
+              ? t('sync.retry')
+              : t('sync.refresh')}
         </Text>
       </Pressable>
     </ScrollView>

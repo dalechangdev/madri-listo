@@ -9,6 +9,8 @@ export type SyncSnapshot = {
   progress: SyncProgress | null;
   /** Set only when everything failed and there is no cache to fall back on. */
   error: string | null;
+  /** True when the last refresh failed for at least one dataset. */
+  updateFailed: boolean;
   states: SyncState[];
   /** True once there is data on device, freshly fetched or previously cached. */
   ready: boolean;
@@ -24,6 +26,7 @@ let snapshot: SyncSnapshot = {
   busy: true,
   progress: null,
   error: null,
+  updateFailed: false,
   states: [],
   ready: false,
 };
@@ -65,13 +68,17 @@ export function refreshDatasets(force = false): Promise<void> {
       const hasCachedData = states.some((state) => state.recordCount > 0);
       emit({
         states,
+        updateFailed: summary.failed.length > 0,
         error:
           summary.failed.length > 0 && !hasCachedData
             ? summary.failed[0].error
             : null,
       });
     } catch (caught) {
-      emit({ error: caught instanceof Error ? caught.message : String(caught) });
+      emit({
+        updateFailed: true,
+        error: caught instanceof Error ? caught.message : String(caught),
+      });
     } finally {
       emit({ busy: false, progress: null });
       inFlight = null;

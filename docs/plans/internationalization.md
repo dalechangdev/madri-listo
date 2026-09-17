@@ -2,7 +2,7 @@
 
 Goal: serve Spanish and English speakers equally well.
 
-Status: Phases 1–3 done (2026-09-17). Language-selection approach decided.
+Status: Phases 1–4 done (2026-09-17). Language-selection approach decided.
 
 ## What already works
 
@@ -161,7 +161,7 @@ offers an override.
   - Cluster bubbles have a spoken label (`map.clusterLabel`, e.g.
     "Libraries: 1,240") instead of a bare number.
 
-### Phase 4: catch translation mistakes before runtime
+### Phase 4: catch translation mistakes before runtime — done
 
 - Treat `es.ts` as the reference and require `en.ts` to have exactly the same
   keys (`satisfies Translations`), so a missing or extra key fails
@@ -171,6 +171,26 @@ offers an override.
   table.
 - Use or delete the unused keys. `sync.offlineNotice` probably belongs on the
   map screen when a sync fails.
+- Outcome:
+  - `src/i18n/keys.ts` derives `Translations` (the exact shape of `es.ts`) and
+    `TranslationKey` (every leaf key; plural objects count as one key). It
+    has no runtime imports, so the data layer can use it.
+  - `en.ts` is `as const satisfies Translations`: a missing, extra or
+    wrongly-shaped key (e.g. a plural reduced to one string) fails
+    `npm run typecheck`. `t()`, `CategoryMeta.labelKey` and the descriptor's
+    `labelKey` / `typeLabelKey` / `detailLabelKey` all take `TranslationKey`.
+    Both were checked with deliberately broken probe files.
+  - The types found a live bug: the status label was built as
+    `` `sync.${phase}` ``, but sync also reports `done` and `error`, which had
+    no strings. Datasets sync in parallel, so the map could show
+    `[missing "es.sync.done" translation]`. `useSync()` now returns
+    `progressLabelKey` from a typed table, mapping those phases to the new
+    `sync.inProgress`.
+  - Unused keys: `sync.upToDate`, `about.license` and `common.*` were
+    deleted. `sync.offlineNotice` became `sync.showingSaved` ("Some data
+    couldn't be updated…"), because a failed update doesn't always mean
+    offline. The About tab now shows it, with `sync.retry` on the button,
+    when the sync store's new `updateFailed` flag is set.
 
 ### Phase 5: feed data (scope decision)
 

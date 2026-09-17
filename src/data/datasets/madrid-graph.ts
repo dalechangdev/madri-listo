@@ -2,6 +2,7 @@ import type { CategoryId } from '@/constants/categories';
 import { isWithinMadrid } from '@/constants/geo';
 import { clean, humanizeSlug, titleCaseSpanish } from '@/data/text';
 import type { DatasetDescriptor, ResourceRecord } from '@/data/types';
+import type { TranslationKey } from '@/i18n/keys';
 
 /**
  * The Ayuntamiento de Madrid publishes most of its facility catalogues —
@@ -42,9 +43,9 @@ export type GraphDatasetConfig = {
   id: string;
   category: CategoryId;
   /** i18n key for the dataset's plural name. */
-  labelKey: string;
+  labelKey: TranslationKey;
   /** i18n key for the singular "type" chip in the detail sheet. */
-  typeLabelKey: string;
+  typeLabelKey: TranslationKey;
   downloadUrl: string;
   datasetTitle: string;
   sourceUrl: string;

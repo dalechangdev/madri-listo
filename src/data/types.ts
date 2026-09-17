@@ -1,4 +1,5 @@
 import type { CategoryId } from '@/constants/categories';
+import type { TranslationKey } from '@/i18n/keys';
 
 /**
  * A single point of interest, normalised away from whatever shape the
@@ -55,14 +56,14 @@ export type DatasetDescriptor<TRow = unknown> = {
   id: string;
   category: CategoryId;
   /** Key into the i18n `datasets` namespace (plural, e.g. "Libraries"). */
-  labelKey: string;
+  labelKey: TranslationKey;
   /** Key for the singular type shown in the detail sheet ("Library"). */
-  typeLabelKey?: string;
+  typeLabelKey?: TranslationKey;
   /**
    * What this dataset's free-text `detail` field actually means. Defaults to
    * a placement description; facility feeds use it for services instead.
    */
-  detailLabelKey?: string;
+  detailLabelKey?: TranslationKey;
   /** Last-known-good download URL; also the fallback if resolution fails. */
   downloadUrl: string;
   /**

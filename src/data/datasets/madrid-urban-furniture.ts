@@ -3,6 +3,7 @@ import { isWithinMadrid } from '@/constants/geo';
 import { clean, titleCaseSpanish } from '@/data/text';
 import type { DatasetDescriptor, ResourceRecord } from '@/data/types';
 import { utmToLatLon } from '@/data/utm';
+import type { TranslationKey } from '@/i18n/keys';
 
 /**
  * The "mobiliario urbano" family of city feeds — drinking fountains, pet
@@ -36,8 +37,8 @@ type FurnitureRow = {
 export type UrbanFurnitureConfig = {
   id: string;
   category: CategoryId;
-  labelKey: string;
-  typeLabelKey: string;
+  labelKey: TranslationKey;
+  typeLabelKey: TranslationKey;
   downloadUrl: string;
   resolveDownloadUrl?: () => Promise<string>;
   datasetTitle: string;

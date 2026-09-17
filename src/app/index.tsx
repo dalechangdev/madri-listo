@@ -152,7 +152,7 @@ export default function MapScreen() {
           busy={sync.busy || loading}
           label={
             sync.busy
-              ? t(`sync.${sync.progress?.phase ?? 'downloading'}`)
+              ? t(sync.progressLabelKey)
               : sync.error
                 ? t('sync.failed')
                 : tooFarOut

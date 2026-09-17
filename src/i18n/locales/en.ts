@@ -1,3 +1,5 @@
+import type { Translations } from '@/i18n/keys';
+
 export const en = {
   tabs: { map: 'Map', nearby: 'Nearby', about: 'About' },
   categories: {
@@ -58,10 +60,10 @@ export const en = {
     downloading: 'Downloading open data…',
     parsing: 'Processing records…',
     storing: 'Saving to your device…',
-    upToDate: 'Data up to date',
+    inProgress: 'Updating data…',
     failed: 'Could not update the data',
     retry: 'Retry',
-    offlineNotice: 'Offline: showing saved data.',
+    showingSaved: "Some data couldn't be updated. Showing saved data.",
     lastUpdated: 'Updated {{date}}',
     refresh: 'Refresh data',
     recordCount: {
@@ -74,9 +76,7 @@ export const en = {
     intro:
       'MadriListo brings together open data from the Madrid city council and region to help you find public resources near you.',
     sources: 'Data sources',
-    license: 'License',
     disclaimer:
       'In an emergency call 112. The availability of a defibrillator is not guaranteed.',
   },
-  common: { loading: 'Loading…', error: 'Something went wrong', dismiss: 'Dismiss' },
-} as const;
+} as const satisfies Translations;

@@ -1,3 +1,4 @@
+/** Reference locale: every other locale must match this shape (see `@/i18n/keys`). */
 export const es = {
   tabs: { map: 'Mapa', nearby: 'Cerca', about: 'Info' },
   categories: {
@@ -58,10 +59,10 @@ export const es = {
     downloading: 'Descargando datos abiertos…',
     parsing: 'Procesando registros…',
     storing: 'Guardando en el dispositivo…',
-    upToDate: 'Datos actualizados',
+    inProgress: 'Actualizando datos…',
     failed: 'No se pudieron actualizar los datos',
     retry: 'Reintentar',
-    offlineNotice: 'Sin conexión: mostrando datos guardados.',
+    showingSaved: 'No se pudieron actualizar algunos datos. Se muestran los datos guardados.',
     lastUpdated: 'Actualizado el {{date}}',
     refresh: 'Actualizar datos',
     recordCount: {
@@ -74,9 +75,7 @@ export const es = {
     intro:
       'MadriListo reúne datos abiertos del Ayuntamiento y la Comunidad de Madrid para ayudarte a encontrar recursos públicos cerca de ti.',
     sources: 'Fuentes de datos',
-    license: 'Licencia',
     disclaimer:
       'En una emergencia llama al 112. La disponibilidad de un desfibrilador no está garantizada.',
   },
-  common: { loading: 'Cargando…', error: 'Algo ha fallado', dismiss: 'Cerrar' },
 } as const;
